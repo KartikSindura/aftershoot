@@ -1,7 +1,7 @@
 use aftershoot::convert_image_to_ascii;
-use clap::Parser;
+use clap::{ArgAction, Parser};
 
-use aftershoot::AsciiChars;
+use aftershoot::Style;
 use std::fs;
 use std::path::PathBuf;
 
@@ -14,16 +14,26 @@ struct Args {
     out: PathBuf,
     #[arg(short, long, default_value_t = 256)]
     iheight: u32,
-    #[arg(value_enum, short, long, default_value_t = AsciiChars::Acerola)]
-    chars: AsciiChars,
+    #[arg(value_enum, short, long, default_value_t = Style::Acerola)]
+    ascii_chars: Style,
+    #[arg(short, long, action = ArgAction::SetTrue)]
+    color: bool,
+    #[arg(short, long, default_value_t = 256)]
+    quant: u32,
 }
 
 fn main() {
     let args = Args::parse();
-    let res = convert_image_to_ascii(&args.path, args.iheight, args.chars);
-    let mut res2 = String::new();
+    let res = convert_image_to_ascii(
+        &args.path,
+        args.iheight,
+        args.ascii_chars,
+        args.color,
+        args.quant,
+    );
+    let mut res_div = String::new();
     for line in res.lines() {
-        res2 += &format!("<div class='barcode'>{}</div>", line);
+        res_div += &format!("<div class='barcode'>{}</div>", line);
     }
     let html = format!(
         r#"<!DOCTYPE html>
@@ -34,7 +44,7 @@ fn main() {
   <link href="style.css" rel="stylesheet" />
 </head>
 <body>
-{res2}
+{res_div}
 </body>
 </html>"#
     );
