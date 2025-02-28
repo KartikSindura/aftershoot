@@ -1,4 +1,5 @@
 use aftershoot::convert_image_to_ascii;
+use aftershoot::render_html;
 use clap::{ArgAction, Parser};
 
 use aftershoot::Style;
@@ -8,21 +9,29 @@ use std::path::PathBuf;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
+    /// Image path
     #[arg(short, long)]
     path: PathBuf,
+    /// Output path
     #[arg(short, long)]
     out: PathBuf,
+    /// Output image height
     #[arg(short, long, default_value_t = 256)]
     iheight: u32,
+    /// Ascii character set
     #[arg(value_enum, short, long, default_value_t = Style::Acerola)]
-    ascii_chars: Style,
+    style: Style,
+    /// Enable color mode
     #[arg(short, long, action = ArgAction::SetTrue)]
     color: bool,
     #[arg(short, long)]
+    /// Quantize colors
     quant: Option<u32>,
     #[arg(short, long, action = ArgAction::SetTrue)]
+    /// Ceil quantized colors
     brighten: bool,
     #[arg(short, long, action = ArgAction::SetTrue)]
+    /// Floor quantized colors
     floor: bool,
 }
 
@@ -31,41 +40,13 @@ fn main() {
     let res = convert_image_to_ascii(
         &args.path,
         args.iheight,
-        args.ascii_chars,
+        args.style,
         args.color,
         args.quant,
         args.brighten,
         args.floor,
     );
-    let mut res_div = String::new();
-    for line in res.lines() {
-        res_div += &format!("<div class='barcode'>{}</div>", line);
-    }
-    let html = format!(
-        r#"<!DOCTYPE html>
-<html lang="en">
-<head>
-<style>
 
-.barcode {{
-    font-family:Courier;
-    white-space:pre; /* or pre-wrap if you want wrapping to still work.*/
-    line-height: 0.7;
-    letter-spacing: 1.6px;
-    color: white;
-    background-color: black;
-
-}}
-
-</style>
-  <meta charset="utf-8">
-  <title></title>
-  <link href="style.css" rel="stylesheet" />
-</head>
-<body>
-{res_div}
-</body>
-</html>"#
-    );
+    let html = render_html(res);
     fs::write(args.out, html).unwrap();
 }

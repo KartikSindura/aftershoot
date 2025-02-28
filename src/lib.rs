@@ -37,6 +37,42 @@ impl Rounding for f32 {
     }
 }
 
+pub fn convert_video_to_ascii() {}
+
+pub fn render_html(res: String) -> String {
+    let mut res_div = String::new();
+    for line in res.lines() {
+        res_div += &format!("<div class='barcode'>{}</div>", line);
+    }
+
+    let html = format!(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+
+.barcode {{
+    font-family:Courier;
+    white-space:pre; 
+    line-height: 0.7;
+    letter-spacing: 1.6px;
+    color: white;
+    background-color: black;
+
+}}
+
+</style>
+  <meta charset="utf-8">
+  <title></title>
+</head>
+<body>
+{res_div}
+</body>
+</html>"#
+    );
+    html
+}
+
 pub fn convert_image_to_ascii(
     path: &Path,
     new_height: u32,
