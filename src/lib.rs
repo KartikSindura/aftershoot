@@ -28,11 +28,10 @@ pub fn convert_image_to_ascii(
     new_height: u32,
     ascii_chars: Style,
     color: bool,
-    quantization_factor: u32,
+    quantization_factor: Option<u32>,
 ) -> String {
     let img = image::open(path).expect("Failed to open image");
     let ascii_chars = ascii_chars.chars();
-    // let ascii_chars: Vec<char> = ascii_chars.chars().iter().cloned().rev().collect();
 
     let (width, height) = img.dimensions();
 
@@ -40,29 +39,24 @@ pub fn convert_image_to_ascii(
     let new_width = width * new_height / height;
     let resized = resize(&img, new_width, new_height, Lanczos3);
     let mut final_image = String::new();
-    let quantization_distance = 256.0 / quantization_factor as f32;
 
     if color {
         let colored_image = &resized;
         for y in 0..new_height {
             for x in 0..new_width {
                 let pixel = colored_image.get_pixel(x, y).0;
-                let r = pixel[0];
-                let g = pixel[1];
-                let b = pixel[2];
-                let lum = 0.2126 * r as f32 + 0.7152 * g as f32 + 0.0722 * b as f32;
-                let mapped_index =
-                    ((lum as f32) / (256.0_f32) * ascii_chars.len() as f32).ceil() as usize;
-
-                let r = ((r as f32) / (quantization_distance) as f32).floor()
-                    * quantization_distance as f32;
-                let g = ((g as f32) / (quantization_distance) as f32).floor()
-                    * quantization_distance as f32;
-                let b = ((b as f32) / (quantization_distance) as f32).floor()
-                    * quantization_distance as f32;
-
-                // return 9 if out of bounds
+                let (mut r, mut g, mut b) = (pixel[0] as f32, pixel[1] as f32, pixel[2] as f32);
+                let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                let mapped_index = (lum / (256.0_f32) * ascii_chars.len() as f32).ceil() as usize;
                 let ascii_char = ascii_chars[mapped_index.min(ascii_chars.len() - 1)];
+
+                if let Some(quantization_factor) = quantization_factor {
+                    let quantization_distance = 256.0 / quantization_factor as f32;
+                    r = (r / (quantization_distance)).floor() * quantization_distance;
+                    g = (g / (quantization_distance)).floor() * quantization_distance;
+                    b = (b / (quantization_distance)).floor() * quantization_distance;
+                }
+
                 final_image.push_str(&format!(
                     r#"<span style='color: rgb({},{},{})'>{}</span>"#,
                     r, g, b, ascii_char

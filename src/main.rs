@@ -18,8 +18,8 @@ struct Args {
     ascii_chars: Style,
     #[arg(short, long, action = ArgAction::SetTrue)]
     color: bool,
-    #[arg(short, long, default_value_t = 256)]
-    quant: u32,
+    #[arg(short, long)]
+    quant: Option<u32>,
 }
 
 fn main() {
@@ -39,6 +39,19 @@ fn main() {
         r#"<!DOCTYPE html>
 <html lang="en">
 <head>
+<style>
+
+.barcode {{
+    font-family:Courier;
+    white-space:pre; /* or pre-wrap if you want wrapping to still work.*/
+    line-height: 0.7;
+    letter-spacing: 1.6px;
+    color: white;
+    background-color: black;
+
+}}
+
+</style>
   <meta charset="utf-8">
   <title></title>
   <link href="style.css" rel="stylesheet" />
