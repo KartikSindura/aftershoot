@@ -1,4 +1,4 @@
-# Usage
+## Usage
 
 ```
 cargo run --release -- --path <IMAGE> --out <OUTPUT.html> [OPTIONS]
@@ -15,13 +15,12 @@ Options:
   -b, --brighten          Ceil quantized colors
   -f, --floor             Floor quantized colors
 ```
-
+## Example
+```
+cargo run --release -- --path image.jpg --out ascii.html --color --floor --quant 8
+```
 ## Styles
 - `acerola`: ` .;coPO?@█`
 - `me`: ` .-+*%#&@█`
 - `more`: ` .-+*%#?&@█`
 
-## Example
-```
-cargo run --release -- --path image.jpg --out ascii.html --color --floor --quant 8
-```
