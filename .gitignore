@@ -1,0 +1,7 @@
+/target
+*.html
+*.jpeg
+*.jpg
+*.png
+*.txt
+.DS_Store

@@ -1,0 +1,9 @@
+.barcode{
+    font-family:Courier;
+    white-space:pre; /* or pre-wrap if you want wrapping to still work.*/
+	line-height: 0.7;
+	letter-spacing: 1.6px;
+	color: white;
+	background-color: black;
+
+}
