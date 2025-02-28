@@ -3,9 +3,9 @@ use image::{
     GenericImageView, ImageBuffer, Luma,
     imageops::{FilterType::Lanczos3, grayscale, resize},
 };
-use std::{fs, path::Path};
+use std::path::Path;
 
-#[derive(ValueEnum, Debug, Clone)] // ArgEnum here
+#[derive(ValueEnum, Debug, Clone)]
 #[clap(rename_all = "kebab_case")]
 pub enum Style {
     Acerola,
@@ -23,12 +23,28 @@ impl Style {
     }
 }
 
+pub trait Rounding {
+    fn custom_clamp(&self, ceil: bool, floor: bool) -> Self;
+}
+
+impl Rounding for f32 {
+    fn custom_clamp(&self, ceil: bool, floor: bool) -> Self {
+        match (ceil, floor) {
+            (true, false) => self.ceil(),
+            (false, true) => self.floor(),
+            _ => self.round(),
+        }
+    }
+}
+
 pub fn convert_image_to_ascii(
     path: &Path,
     new_height: u32,
     ascii_chars: Style,
     color: bool,
     quantization_factor: Option<u32>,
+    brighten: bool,
+    floor: bool,
 ) -> String {
     let img = image::open(path).expect("Failed to open image");
     let ascii_chars = ascii_chars.chars();
@@ -47,14 +63,18 @@ pub fn convert_image_to_ascii(
                 let pixel = colored_image.get_pixel(x, y).0;
                 let (mut r, mut g, mut b) = (pixel[0] as f32, pixel[1] as f32, pixel[2] as f32);
                 let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-                let mapped_index = (lum / (256.0_f32) * ascii_chars.len() as f32).ceil() as usize;
+                let mapped_index = (lum / (256.0_f32) * ascii_chars.len() as f32)
+                    .custom_clamp(brighten, floor) as usize;
                 let ascii_char = ascii_chars[mapped_index.min(ascii_chars.len() - 1)];
 
                 if let Some(quantization_factor) = quantization_factor {
                     let quantization_distance = 256.0 / quantization_factor as f32;
-                    r = (r / (quantization_distance)).floor() * quantization_distance;
-                    g = (g / (quantization_distance)).floor() * quantization_distance;
-                    b = (b / (quantization_distance)).floor() * quantization_distance;
+                    r = (r / (quantization_distance)).custom_clamp(brighten, floor)
+                        * quantization_distance;
+                    g = (g / (quantization_distance)).custom_clamp(brighten, floor)
+                        * quantization_distance;
+                    b = (b / (quantization_distance)).custom_clamp(brighten, floor)
+                        * quantization_distance;
                 }
 
                 final_image.push_str(&format!(
@@ -81,7 +101,6 @@ pub fn convert_image_to_ascii(
             final_image.push('\n');
         }
 
-        // fs::write("final_image.txt", &final_image).unwrap();
         final_image
     }
 }

@@ -20,6 +20,10 @@ struct Args {
     color: bool,
     #[arg(short, long)]
     quant: Option<u32>,
+    #[arg(short, long, action = ArgAction::SetTrue)]
+    brighten: bool,
+    #[arg(short, long, action = ArgAction::SetTrue)]
+    floor: bool,
 }
 
 fn main() {
@@ -30,6 +34,8 @@ fn main() {
         args.ascii_chars,
         args.color,
         args.quant,
+        args.brighten,
+        args.floor,
     );
     let mut res_div = String::new();
     for line in res.lines() {
