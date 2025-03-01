@@ -17,14 +17,15 @@ struct Args {
     out: PathBuf,
     /// Output image height
     #[arg(short, long, default_value_t = 256)]
-    iheight: u32,
+    height: u32,
     /// Ascii character set
-    #[arg(value_enum, short, long, default_value_t = Style::Acerola)]
-    style: Style,
+    // #[arg(value_enum, short, long, default_value_t = Some(Style::Acerola))]
+    #[command(subcommand)]
+    style: Option<Style>,
     /// Enable color mode
     #[arg(short, long, action = ArgAction::SetTrue)]
     color: bool,
-    #[arg(short, long)]
+    #[arg(short, long, requires = "color")]
     /// Quantize colors
     quant: Option<u32>,
     #[arg(short, long, action = ArgAction::SetTrue)]
@@ -33,18 +34,21 @@ struct Args {
     #[arg(short, long, action = ArgAction::SetTrue)]
     /// Floor quantized colors
     floor: bool,
+    #[arg(short, long, action = ArgAction::SetTrue)]
+    invert: bool,
 }
 
 fn main() {
     let args = Args::parse();
     let res = convert_image_to_ascii(
         &args.path,
-        args.iheight,
-        args.style,
+        args.height,
+        args.style.unwrap_or(Style::Acerola),
         args.color,
         args.quant,
         args.brighten,
         args.floor,
+        args.invert,
     );
 
     let html = render_html(res);

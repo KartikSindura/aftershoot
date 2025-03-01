@@ -1,24 +1,47 @@
-use clap::ValueEnum;
+use clap::Args;
+use clap::Subcommand;
 use image::{
     GenericImageView, ImageBuffer, Luma,
     imageops::{FilterType::Lanczos3, grayscale, resize},
 };
+use std::ops::Deref;
+use std::ops::DerefMut;
 use std::path::Path;
 
-#[derive(ValueEnum, Debug, Clone)]
+#[derive(Debug, Clone, Subcommand)]
 #[clap(rename_all = "kebab_case")]
 pub enum Style {
     Acerola,
     Me,
     More,
+    Custom(AddArgs),
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct AddArgs {
+    chars: String,
+}
+
+impl Deref for AddArgs {
+    type Target = String;
+    fn deref(&self) -> &Self::Target {
+        &self.chars
+    }
+}
+impl DerefMut for AddArgs {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.chars
+    }
 }
 
 impl Style {
-    pub fn chars(&self) -> &[char] {
+    pub fn chars(&self) -> Vec<char> {
+        // TODO: Send reference to a string or char array
         match self {
-            Self::Acerola => &[' ', '.', ';', 'c', 'o', 'P', 'O', '?', '@', '█'],
-            Self::Me => &[' ', '.', '-', '+', '*', '%', '#', '&', '@', '█'],
-            Self::More => &[' ', '.', '-', '+', '*', '%', '#', '?', '&', '@', '█'],
+            Self::Acerola => vec![' ', '.', ';', 'c', 'o', 'P', 'O', '?', '@', '█'],
+            Self::Me => vec![' ', '.', '-', '+', '*', '%', '#', '&', '@', '█'],
+            Self::More => vec![' ', '.', '-', '+', '*', '%', '#', '?', '&', '@', '█'],
+            Self::Custom(inner) => inner.chars.chars().collect::<Vec<char>>(),
         }
     }
 }
@@ -73,6 +96,7 @@ pub fn render_html(res: String) -> String {
     html
 }
 
+// FIX: too many arguments needs refractoring
 pub fn convert_image_to_ascii(
     path: &Path,
     new_height: u32,
@@ -81,9 +105,14 @@ pub fn convert_image_to_ascii(
     quantization_factor: Option<u32>,
     brighten: bool,
     floor: bool,
+    invert: bool,
 ) -> String {
     let img = image::open(path).expect("Failed to open image");
-    let ascii_chars = ascii_chars.chars();
+    let mut ascii_chars = ascii_chars.chars();
+
+    if invert {
+        ascii_chars.reverse();
+    }
 
     let (width, height) = img.dimensions();
 
