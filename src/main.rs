@@ -1,8 +1,8 @@
+use aftershoot::Style;
 use aftershoot::convert_image_to_ascii;
 use aftershoot::render_html;
 use clap::{ArgAction, Parser};
 
-use aftershoot::Style;
 use std::fs;
 use std::path::PathBuf;
 
@@ -19,9 +19,9 @@ struct Args {
     #[arg(short, long, default_value_t = 256)]
     height: u32,
     /// Ascii character set
-    // #[arg(value_enum, short, long, default_value_t = Some(Style::Acerola))]
-    #[command(subcommand)]
-    style: Option<Style>,
+    #[arg(short, long, default_value = "acerola")]
+    // #[command(subcommand)]
+    style: String,
     /// Enable color mode
     #[arg(short, long, action = ArgAction::SetTrue)]
     color: bool,
@@ -35,15 +35,19 @@ struct Args {
     /// Floor quantized colors
     floor: bool,
     #[arg(short, long, action = ArgAction::SetTrue)]
+    /// Invert the character set
     invert: bool,
 }
 
 fn main() {
     let args = Args::parse();
+
+    let style = Style::convert_from_str(&args.style);
+
     let res = convert_image_to_ascii(
         &args.path,
         args.height,
-        args.style.unwrap_or(Style::Acerola),
+        style,
         args.color,
         args.quant,
         args.brighten,

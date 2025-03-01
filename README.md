@@ -8,19 +8,15 @@ Required:
   -o, --out <PATH>        Output HTML file path
 
 Options:
-  -h, --height <NUM>      Output height (default: 256)
-  -c, --color             Enable colored output
-  -q, --quant <NUM>       Quantize colors
-  -b, --brighten          Ceil quantized colors
-  -f, --floor             Floor quantized colors
-  -i, --invert            Invert the character set
-
-Commands:
-  acerola                  .;coPO?A█
-  me                       .-*%#&@█
-  more                     .-*%#?&@█
-  custom                  Provide your own ASCII characters
-  help     Print this message or the help of the given subcommand(s)
+  -h, --height <NUM>     Output image height [default: 256]
+  -s, --style <STYLE>    Ascii character set [default: acerola] [possible values: custom, me, more]
+  -c, --color            Enable color mode
+  -q, --quant <NUM>      Quantize colors
+  -b, --brighten         Ceil quantized colors
+  -f, --floor            Floor quantized colors
+  -i, --invert           Invert the character set
+  -h, --help             Print help
+  -V, --version          Print version
 ```
 ## Example
 ```

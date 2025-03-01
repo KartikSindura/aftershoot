@@ -1,47 +1,33 @@
-use clap::Args;
-use clap::Subcommand;
 use image::{
     GenericImageView, ImageBuffer, Luma,
     imageops::{FilterType::Lanczos3, grayscale, resize},
 };
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::path::Path;
 
-#[derive(Debug, Clone, Subcommand)]
-#[clap(rename_all = "kebab_case")]
+#[derive(Debug, Clone)]
 pub enum Style {
     Acerola,
     Me,
     More,
-    Custom(AddArgs),
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct AddArgs {
-    chars: String,
-}
-
-impl Deref for AddArgs {
-    type Target = String;
-    fn deref(&self) -> &Self::Target {
-        &self.chars
-    }
-}
-impl DerefMut for AddArgs {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.chars
-    }
+    Custom(String),
 }
 
 impl Style {
-    pub fn chars(&self) -> Vec<char> {
-        // TODO: Send reference to a string or char array
+    pub fn convert_from_str(value: &str) -> Self {
+        match value.to_lowercase().as_str() {
+            "acerola" => Style::Acerola,
+            "me" => Style::Me,
+            "more" => Style::More,
+            _ => Style::Custom(value.to_string()),
+        }
+    }
+    // TODO: Send reference to a string or char array
+    pub fn style_parser(&self) -> Vec<char> {
         match self {
             Self::Acerola => vec![' ', '.', ';', 'c', 'o', 'P', 'O', '?', '@', '█'],
             Self::Me => vec![' ', '.', '-', '+', '*', '%', '#', '&', '@', '█'],
             Self::More => vec![' ', '.', '-', '+', '*', '%', '#', '?', '&', '@', '█'],
-            Self::Custom(inner) => inner.chars.chars().collect::<Vec<char>>(),
+            Self::Custom(inner) => inner.chars().collect(),
         }
     }
 }
@@ -59,8 +45,6 @@ impl Rounding for f32 {
         }
     }
 }
-
-pub fn convert_video_to_ascii() {}
 
 pub fn render_html(res: String) -> String {
     let mut res_div = String::new();
@@ -108,7 +92,7 @@ pub fn convert_image_to_ascii(
     invert: bool,
 ) -> String {
     let img = image::open(path).expect("Failed to open image");
-    let mut ascii_chars = ascii_chars.chars();
+    let mut ascii_chars = ascii_chars.style_parser();
 
     if invert {
         ascii_chars.reverse();
